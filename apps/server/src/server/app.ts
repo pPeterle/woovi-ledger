@@ -1,13 +1,12 @@
+import cors from 'kcors';
 import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
-import cors from 'kcors';
 import { graphqlHTTP } from 'koa-graphql';
-import Router from 'koa-router';
 import logger from 'koa-logger';
+import Router from 'koa-router';
 
 import { schema } from '../schema/schema';
 import { getContext } from './getContext';
-import { createWebsocketMiddleware } from './websocketMiddleware';
 
 const app = new Koa();
 
@@ -20,8 +19,6 @@ app.use(
 		},
 	})
 );
-
-app.use(createWebsocketMiddleware());
 
 const routes = new Router();
 

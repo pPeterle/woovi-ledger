@@ -19,3 +19,4 @@ const config = {
 };
 
 export { config };
+
