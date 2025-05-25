@@ -1,21 +1,20 @@
-import { Container } from '@mui/material';
+import { Toaster } from "sonner";
+import { Navigation } from "./Navigation";
 
 type LayoutProps = {
-	children?: React.ReactNode;
+  children?: React.ReactNode;
 };
 
 export const Layout = ({ children }: LayoutProps) => {
-	return (
-		<Container
-			maxWidth="sm"
-			sx={{
-				backgroundColor: 'white',
-				p: 2,
-				height: '100vh',
-				overflowY: 'scroll',
-			}}
-		>
-			{children}
-		</Container>
-	);
+  return (
+    <html>
+      <body>
+        <Toaster />
+        <div className="min-h-screen">
+          <Navigation />
+          {children}
+        </div>
+      </body>
+    </html>
+  );
 };

@@ -1,58 +1,16 @@
 type Query {
-  messages(
-    """Returns the items in the list that come after the specified cursor."""
-    after: String
+  """Fetches an object given its ID"""
+  node(
+    """The ID of an object"""
+    id: ID!
+  ): Node
 
-    """Returns the first n items from the list."""
-    first: Int
-
-    """Returns the items in the list that come before the specified cursor."""
-    before: String
-
-    """Returns the last n items from the list."""
-    last: Int
-  ): MessageConnection
-}
-
-"""A connection to a list of items."""
-type MessageConnection {
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-
-  """A list of edges."""
-  edges: [MessageEdge]
-}
-
-"""Information about pagination in a connection."""
-type PageInfo {
-  """When paginating forwards, are there more items?"""
-  hasNextPage: Boolean!
-
-  """When paginating backwards, are there more items?"""
-  hasPreviousPage: Boolean!
-
-  """When paginating backwards, the cursor to continue."""
-  startCursor: String
-
-  """When paginating forwards, the cursor to continue."""
-  endCursor: String
-}
-
-"""An edge in a connection."""
-type MessageEdge {
-  """The item at the end of the edge"""
-  node: Message
-
-  """A cursor for use in pagination"""
-  cursor: String!
-}
-
-"""Represents a message"""
-type Message implements Node {
-  """The ID of an object"""
-  id: ID!
-  content: String
-  createdAt: String
+  """Fetches objects given their IDs"""
+  nodes(
+    """The IDs of objects"""
+    ids: [ID!]!
+  ): [Node]!
+  account: Account
 }
 
 """An object with an ID"""
@@ -61,29 +19,67 @@ interface Node {
   id: ID!
 }
 
+"""Represents an account with balance"""
+type Account implements Node {
+  """The ID of an object"""
+  id: ID!
+  accountName: String
+  balance: String
+  deletedAt: String
+
+  """mongoose _id"""
+  _id: String!
+  createdAt: String
+  updatedAt: String
+}
+
 type Mutation {
-  MessageAdd(input: MessageAddInput!): MessageAddPayload
+  CreateAccountMutation(input: AddAccountInput!): AddAccountPayload
+  AddDepositMutation(input: AddDepositInput!): AddDepositPayload
 }
 
-type MessageAddPayload {
-  message: Message
+type AddAccountPayload {
+  account: Account
   clientMutationId: String
 }
 
-input MessageAddInput {
-  content: String!
+input AddAccountInput {
+  """Name of the account"""
+  name: String!
   clientMutationId: String
 }
 
-type Subscription {
-  MessageAdded(input: MessageAddedInput!): MessageAddedPayload
+type AddDepositPayload {
+  transaction: Transaction
+
+  """Default success field resolver."""
+  success: String
+
+  """Default error field resolver."""
+  error: String
+  clientMutationId: String
 }
 
-type MessageAddedPayload {
-  message: Message
-  clientSubscriptionId: String
+"""Represents an Transaction with balance"""
+type Transaction implements Node {
+  """The ID of an object"""
+  id: ID!
+  source: String
+
+  """mongoose _id"""
+  _id: String!
+  createdAt: String
+  updatedAt: String
 }
 
-input MessageAddedInput {
-  clientSubscriptionId: String
+input AddDepositInput {
+  """PIX or BANK"""
+  source: String!
+
+  """Amount in cents"""
+  amount: Int!
+
+  """Account ID"""
+  fromAccount: String!
+  clientMutationId: String
 }
