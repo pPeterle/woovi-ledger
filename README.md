@@ -40,8 +40,10 @@
 - Outbox Pattern
 - Every Transaction starts with status "PENDING" and add a job to a queue.
 - Background worker listen the queue and process the integration (BullMQ)
+- It can avoid update the same accountid at the same time.
 - Update the transaction status and create a document in Ledger collection
 - In error retry with exponencial backoff
+
 
 ## Collections
 
