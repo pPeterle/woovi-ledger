@@ -9,7 +9,6 @@ type Props = {
 
 export const metadata: Metadata = {
   title: "Woovi",
-  description: "",
 };
 
 export default ({ children }: Props) => {

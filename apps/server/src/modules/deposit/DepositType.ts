@@ -19,7 +19,6 @@ import { IDeposit } from "./DepositModel";
 
 const DepositType = new GraphQLObjectType<IDeposit, GraphQLContext>({
   name: "Deposit",
-  description: "Represents an Transaction with balance",
   fields: () => ({
     id: globalIdField("Deposit"),
     source: {
@@ -28,7 +27,6 @@ const DepositType = new GraphQLObjectType<IDeposit, GraphQLContext>({
     },
     amount: {
       type: new GraphQLNonNull(GraphQLInt),
-      description: "Total amount of the transaction in cents",
       resolve: (transaction) => transaction.amount,
     },
     fromAccount: {

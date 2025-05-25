@@ -11,12 +11,6 @@ const Schema = new mongoose.Schema(
       description: 'Status from transaction: "PENDING", "FAILED" or "SUCCESS"',
       required: true,
     },
-    // paymentType: {
-    //   type: String,
-    //   enum: ["PIX", "CREDIT", "DEBIT"],
-    //   description: 'Type of operation "PIX", "CREDIT" or "DEBIT"',
-    //   required: true,
-    // },
     transactionType: {
       type: String,
       enum: ["DEPOSIT", "WITHDRAW", "TRANSFER"],
@@ -37,7 +31,6 @@ const Schema = new mongoose.Schema(
 );
 
 export type TransactionStatus = "PENDING" | "SUCCESS" | "FAILED";
-//export type PaymentType = "CREDIT" | "DEBIT" | "PIX";
 export type TransactionType = "DEPOSIT" | "WITHDRAW" | "TRANSFER";
 
 export interface ITransaction extends Document {
@@ -45,7 +38,6 @@ export interface ITransaction extends Document {
   amount: number;
   fromAccount: Types.ObjectId;
   status: TransactionStatus;
-  //paymentType: PaymentType;
   transactionType: TransactionType;
   createdAt: Date;
   updatedAt: Date | null;

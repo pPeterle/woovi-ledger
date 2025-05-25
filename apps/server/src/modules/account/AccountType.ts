@@ -12,7 +12,6 @@ import { IAccount } from "./AccountModel";
 
 const AccountType = new GraphQLObjectType<IAccount, GraphQLContext>({
   name: "Account",
-  description: "Represents an account with balance",
   fields: () => ({
     id: globalIdField("Account"),
     accountName: {

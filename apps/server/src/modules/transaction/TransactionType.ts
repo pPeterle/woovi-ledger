@@ -19,7 +19,6 @@ import { ITransaction } from "./TransactionModel";
 
 const TransactionType = new GraphQLObjectType<ITransaction, GraphQLContext>({
   name: "Transaction",
-  description: "Represents an Transaction with balance",
   fields: () => ({
     id: globalIdField("Transaction"),
     amount: {
@@ -37,10 +36,6 @@ const TransactionType = new GraphQLObjectType<ITransaction, GraphQLContext>({
       type: GraphQLString,
       resolve: (transaction) => transaction.status,
     },
-    // paymentType: {
-    //   type: GraphQLString,
-    //   resolve: (transaction) => transaction.paymentType,
-    // },
     transactionType: {
       type: GraphQLString,
       resolve: (transaction) => transaction.transactionType,

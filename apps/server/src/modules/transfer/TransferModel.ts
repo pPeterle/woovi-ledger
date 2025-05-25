@@ -8,7 +8,6 @@ const { ObjectId } = mongoose.Schema.Types;
 const Schema = new mongoose.Schema({
   toAccount: {
     type: ObjectId,
-    description: "Origin account that will send the amount sent",
     required: true,
   },
 });

@@ -15,7 +15,6 @@ import { ILedger } from "./LedgerModel";
 
 const LedgerType = new GraphQLObjectType<ILedger>({
   name: "Ledger",
-  description: "Represents a ledger entry for financial transactions",
   fields: () => ({
     id: globalIdField("Ledger"),
     description: {
@@ -23,30 +22,27 @@ const LedgerType = new GraphQLObjectType<ILedger>({
     },
     amount: {
       type: GraphQLInt,
-      description:
-        "Amount of the transaction (positive for credit, negative for debit)",
+      description: "Amount in cents",
       resolve: (ledger) => ledger.amount,
     },
     finalBalance: {
       type: GraphQLInt,
-      description: "Account balance after this transaction",
+      description: "Account balance after this ledger entry",
       resolve: (ledger) => ledger.finalBalance,
     },
     transactionType: {
       type: GraphQLString,
-      description: "Type of ledger entry (CREDIT or DEBIT)",
+      description: "(CREDIT or DEBIT)",
       resolve: (ledger) => ledger.transactionType,
     },
     transaction: {
       type: TransactionType,
-      description: "The transaction associated with this ledger entry",
       resolve: async (ledger, _, ctx) => {
         return TransactionLoader.load(ctx, ledger.transaction);
       },
     },
     account: {
       type: AccountType,
-      description: "The account associated with this ledger entry",
       resolve: async (ledger, _, ctx) => {
         return AccountLoader.load(ctx, ledger.account);
       },

@@ -19,7 +19,6 @@ import { ITransfer } from "./TransferModel";
 
 const TransferType = new GraphQLObjectType<ITransfer, GraphQLContext>({
   name: "Transfer",
-  description: "Represents an Transaction between accounts",
   fields: () => ({
     id: globalIdField("Transfer"),
     toAccount: {
