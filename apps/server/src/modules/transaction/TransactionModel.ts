@@ -1,4 +1,5 @@
 import mongoose, { Document, Model, Types } from "mongoose";
+import { ValueOf } from "../../utils/types";
 
 const { ObjectId } = mongoose.Schema.Types;
 
@@ -30,15 +31,24 @@ const Schema = new mongoose.Schema(
   }
 );
 
-export type TransactionStatus = "PENDING" | "SUCCESS" | "FAILED";
-export type TransactionType = "DEPOSIT" | "WITHDRAW" | "TRANSFER";
+export const transactionStatus = {
+  pending: "PENDING",
+  success: "SUCCESS",
+  failed: "FAILED",
+} as const;
+
+export const transactionType = {
+  deposit: "DEPOSIT",
+  withdraw: "WITHDRAW",
+  transfer: "TRANSFER",
+} as const;
 
 export interface ITransaction extends Document {
   _id: Types.ObjectId;
   amount: number;
   fromAccount: Types.ObjectId;
-  status: TransactionStatus;
-  transactionType: TransactionType;
+  status: ValueOf<typeof transactionStatus>;
+  transactionType: ValueOf<typeof transactionType>;
   createdAt: Date;
   updatedAt: Date | null;
 }
