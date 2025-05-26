@@ -6,6 +6,10 @@ import * as AccountLoader from "../../account/AccountLoader.ts";
 import AccountModel from "../../account/AccountModel.ts";
 import AccountType from "../../account/AccountType.ts";
 import LedgerModel from "../../ledger/LedgerModel.ts";
+import {
+  transactionStatus,
+  transactionType,
+} from "../../transaction/TransactionModel.ts";
 import * as DepositLoader from "../DepositLoader.ts";
 import DepositModel, { DepositSource } from "../DepositModel.ts";
 import DepositType from "../DepositType.ts";
@@ -42,9 +46,9 @@ const AddDepositMutation = mutationWithClientMutationId({
       const transaction = new DepositModel({
         amount: args.amount,
         source: args.source,
-        transactionType: "DEPOSIT",
+        transactionType: transactionType.deposit,
         fromAccount: args.fromAccount,
-        status: "SUCCESS",
+        status: transactionStatus.success,
       });
       await transaction.save({
         session,
