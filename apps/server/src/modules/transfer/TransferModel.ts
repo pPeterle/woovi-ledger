@@ -1,19 +1,16 @@
-import mongoose, { Model, Types } from "mongoose";
+import mongoose, { Model } from "mongoose";
 import TransactionModel, {
   ITransaction,
 } from "../transaction/TransactionModel";
 
-const { ObjectId } = mongoose.Schema.Types;
-
 const Schema = new mongoose.Schema({
-  toAccount: {
-    type: ObjectId,
-    required: true,
+  description: {
+    type: String,
   },
 });
 
 export interface ITransfer extends ITransaction {
-  toAccount: Types.ObjectId;
+  description: string;
 }
 
 const TransferModel: Model<ITransfer> = TransactionModel.discriminator(

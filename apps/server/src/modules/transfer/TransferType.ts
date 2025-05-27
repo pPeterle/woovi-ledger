@@ -21,11 +21,9 @@ const TransferType = new GraphQLObjectType<ITransfer, GraphQLContext>({
   name: "Transfer",
   fields: () => ({
     id: globalIdField("Transfer"),
-    toAccount: {
-      type: AccountType,
-      resolve: async (transaction, _, ctx) => {
-        return await AccountLoader.load(ctx, transaction.toAccount);
-      },
+    description: {
+      type: GraphQLString,
+      resolve: (transaction) => transaction.description,
     },
     amount: {
       type: new GraphQLNonNull(GraphQLInt),
@@ -38,11 +36,16 @@ const TransferType = new GraphQLObjectType<ITransfer, GraphQLContext>({
         return await AccountLoader.load(ctx, transaction.fromAccount);
       },
     },
+    toAccount: {
+      type: AccountType,
+      resolve: async (transaction, _, ctx) => {
+        return await AccountLoader.load(ctx, transaction.toAccount);
+      },
+    },
     status: {
       type: GraphQLString,
       resolve: (transaction) => transaction.status,
     },
-
     transactionType: {
       type: GraphQLString,
       resolve: (transaction) => transaction.transactionType,

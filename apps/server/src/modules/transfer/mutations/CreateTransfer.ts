@@ -1,0 +1,155 @@
+import { errorField, successField } from "@entria/graphql-mongo-helpers";
+import { GraphQLNonNull, GraphQLString } from "graphql";
+import { mutationWithClientMutationId } from "graphql-relay";
+import { startSession } from "mongoose";
+import { z } from "zod/v4";
+import * as AccountLoader from "../../account/AccountLoader.ts";
+import AccountModel from "../../account/AccountModel.ts";
+import AccountType from "../../account/AccountType.ts";
+import LedgerModel, { LedgetEntryType } from "../../ledger/LedgerModel.ts";
+import {
+  TransactionStatus,
+  TransactionType,
+} from "../../transaction/TransactionModel.ts";
+import * as TransferLoader from "../../transfer/TransferLoader.ts";
+import TransferModel from "../TransferModel.ts";
+import TransferType from "../TransferType.ts";
+
+const schema = z.object({
+  amount: z.int().min(100),
+  fromAccountId: z.string(),
+  toAccountId: z.string(),
+});
+
+export type CreateDepositInput = z.infer<typeof schema>;
+
+const CreateTransferMutation = mutationWithClientMutationId({
+  name: "CreateDeposit",
+  inputFields: {
+    source: {
+      description: "PIX or BANK",
+      type: new GraphQLNonNull(GraphQLString),
+    },
+    fromAccountId: {
+      description: "From account ID",
+      type: new GraphQLNonNull(GraphQLString),
+    },
+    toAccountId: {
+      description: "Destiny account ID",
+      type: new GraphQLNonNull(GraphQLString),
+    },
+  },
+  mutateAndGetPayload: async (args: CreateDepositInput) => {
+    schema.parse(args);
+
+    const existsAssetAccount = AccountModel.exists({
+      id: args.toAccountId,
+    });
+
+    const existsIncomeAccount = AccountModel.exists({
+      id: args.fromAccountId,
+    });
+
+    const [assetAccount, incomeAccount] = await Promise.all([
+      existsAssetAccount,
+      existsIncomeAccount,
+    ]);
+
+    // TODO: throw custom error
+    if (!assetAccount) throw Error("Asset account not found");
+    if (!incomeAccount) throw Error("Income account not found");
+
+    const session = await startSession();
+    session.startTransaction();
+
+    try {
+      const deposit = new TransferModel({
+        amount: args.amount,
+        transactionType: TransactionType.deposit,
+        fromAccount: args.fromAccountId,
+        toAccount: incomeAccount?._id,
+        status: TransactionStatus.success,
+      });
+      await deposit.save({
+        session,
+      });
+
+      const assetAccountBalance = await AccountModel.findByIdAndUpdate(
+        {
+          _id: args.fromAccountId,
+        },
+        {
+          $inc: { balance: args.amount },
+        },
+        {
+          session,
+        }
+      );
+
+      const incomeAccountBalance = await AccountModel.findByIdAndUpdate(
+        {
+          _id: incomeAccount._id,
+        },
+        {
+          $inc: { balance: -args.amount },
+        },
+        {
+          session,
+        }
+      );
+
+      const incomeLedger = new LedgerModel({
+        amount: args.amount,
+        account: incomeAccount._id,
+        transaction: deposit,
+        ledgerEntryType: LedgetEntryType.debit,
+        finalBalance: incomeAccountBalance!.balance,
+      });
+
+      const assetLedger = new LedgerModel({
+        amount: args.amount,
+        account: args.fromAccountId,
+        transaction: deposit,
+        ledgerEntryType: LedgetEntryType.credit,
+        finalBalance: assetAccountBalance!.balance,
+      });
+
+      await LedgerModel.create([incomeLedger, assetLedger], {
+        session,
+      });
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return {
+        transactionId: deposit._id,
+        accountId: args.fromAccountId,
+        success: "Deposit created successfully",
+      };
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      return {
+        error: error,
+      };
+    }
+  },
+  outputFields: {
+    transaction: {
+      type: TransferType,
+      resolve: async ({ transactionId }, _, context) => {
+        return await TransferLoader.load(context, transactionId);
+      },
+    },
+    account: {
+      type: AccountType,
+      resolve: async ({ accountId }, _, context) => {
+        return await AccountLoader.load(context, accountId);
+      },
+    },
+    ...successField,
+    ...errorField,
+  },
+});
+
+export default CreateTransferMutation;
