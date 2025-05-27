@@ -21,6 +21,8 @@ const Schema = new mongoose.Schema<IAccount>(
   {
     accountName: {
       type: String,
+      required: true,
+      unique: true,
     },
     balance: {
       type: Number,
@@ -29,8 +31,7 @@ const Schema = new mongoose.Schema<IAccount>(
     accountActionType: {
       type: String,
       enum: ["DEPOSIT", "WITHDRAW"],
-      description: 'Type of transaction "DEPOSIT", "WITHDRAW" or "TRANSFER"',
-      unique: true,
+      description: 'Type of transaction "DEPOSIT", "WITHDRAW" or null ',
     },
   },
   {
