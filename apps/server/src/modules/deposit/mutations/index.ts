@@ -1,7 +1,7 @@
-import AddDepositMutation from "./AddDeposit";
+import CreateDepositMutation from "./CreateDeposit";
 
 const DepositMutations = {
-  AddDepositMutation,
+  CreateDepositMutation,
 };
 
 export default DepositMutations;

@@ -23,6 +23,11 @@ const Schema = new mongoose.Schema(
       description: "Origin account that will send the amount sent",
       required: true,
     },
+    toAccount: {
+      type: ObjectId,
+      description: "Destiny account that will receive the amount sent",
+      required: true,
+    },
   },
   {
     collection: "Transaction",
@@ -31,13 +36,13 @@ const Schema = new mongoose.Schema(
   }
 );
 
-export const transactionStatus = {
+export const TransactionStatus = {
   pending: "PENDING",
   success: "SUCCESS",
   failed: "FAILED",
 } as const;
 
-export const transactionType = {
+export const TransactionType = {
   deposit: "DEPOSIT",
   withdraw: "WITHDRAW",
   transfer: "TRANSFER",
@@ -47,8 +52,9 @@ export interface ITransaction extends Document {
   _id: Types.ObjectId;
   amount: number;
   fromAccount: Types.ObjectId;
-  status: ValueOf<typeof transactionStatus>;
-  transactionType: ValueOf<typeof transactionType>;
+  toAccount: Types.ObjectId;
+  status: ValueOf<typeof TransactionStatus>;
+  transactionType: ValueOf<typeof TransactionType>;
   createdAt: Date;
   updatedAt: Date | null;
 }

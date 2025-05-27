@@ -32,6 +32,12 @@ const TransactionType = new GraphQLObjectType<ITransaction, GraphQLContext>({
         return await AccountLoader.load(ctx, transaction.fromAccount);
       },
     },
+    toAccount: {
+      type: AccountType,
+      resolve: async (transaction, _, ctx) => {
+        return await AccountLoader.load(ctx, transaction.toAccount);
+      },
+    },
     status: {
       type: GraphQLString,
       resolve: (transaction) => transaction.status,
