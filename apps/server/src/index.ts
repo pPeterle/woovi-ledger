@@ -1,7 +1,7 @@
 import http from "http";
 
 import { config } from "./config";
-import { connectDatabase } from "./database";
+import { connectDatabase } from "./db/database";
 import { app } from "./server/app";
 
 (async () => {

@@ -18,6 +18,10 @@ const AccountType = new GraphQLObjectType<IAccount, GraphQLContext>({
       type: GraphQLString,
       resolve: (account) => account.accountName,
     },
+    accountActionType: {
+      type: GraphQLString,
+      resolve: (account) => account.accountActionType,
+    },
     balance: {
       type: GraphQLString,
       resolve: (account) => account.balance,

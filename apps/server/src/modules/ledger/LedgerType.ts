@@ -30,10 +30,10 @@ const LedgerType = new GraphQLObjectType<ILedger>({
       description: "Account balance after this ledger entry",
       resolve: (ledger) => ledger.finalBalance,
     },
-    transactionType: {
+    ledgerEntryType: {
       type: GraphQLString,
-      description: "(CREDIT or DEBIT)",
-      resolve: (ledger) => ledger.transactionType,
+      description: "Ledger entry type 'CREDIT' | 'DEBIT' ",
+      resolve: (ledger) => ledger.ledgerEntryType,
     },
     transaction: {
       type: TransactionType,

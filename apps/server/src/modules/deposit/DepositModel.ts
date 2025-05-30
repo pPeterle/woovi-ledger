@@ -1,4 +1,5 @@
 import mongoose, { Model } from "mongoose";
+import { ValueOf } from "../../utils/types";
 import TransactionModel, {
   ITransaction,
 } from "../transaction/TransactionModel";
@@ -12,10 +13,13 @@ const Schema = new mongoose.Schema({
   },
 });
 
-export type DepositSource = "PIX" | "TED";
+export const DepositSource = {
+  pix: "PIX",
+  ted: "TED",
+} as const;
 
 export interface IDeposit extends ITransaction {
-  source: DepositSource;
+  source: ValueOf<typeof DepositSource>;
 }
 
 const DepositModel: Model<IDeposit> = TransactionModel.discriminator(

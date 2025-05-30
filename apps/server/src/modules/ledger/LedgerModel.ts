@@ -1,6 +1,12 @@
 import mongoose, { Document, Model, Types } from "mongoose";
+import { ValueOf } from "../../utils/types";
 
 const { ObjectId } = mongoose.Schema.Types;
+
+export const LedgetEntryType = {
+  credit: "CREDIT",
+  debit: "DEBIT",
+} as const;
 
 export interface ILedger extends Document {
   _id: Types.ObjectId;
@@ -8,7 +14,7 @@ export interface ILedger extends Document {
   account: Types.ObjectId;
   amount: number;
   finalBalance: number;
-  transactionType: "CREDIT" | "DEBIT";
+  ledgerEntryType: ValueOf<typeof LedgetEntryType>;
   idempotencyKey: string;
   createdAt: Date;
   updatedAt: Date | null;
@@ -34,7 +40,7 @@ const Schema = new mongoose.Schema<ILedger>(
       type: Number,
       required: true,
     },
-    transactionType: {
+    ledgerEntryType: {
       type: String,
       enum: ["CREDIT", "DEBIT"],
       required: true,
