@@ -1,12 +1,14 @@
 import mongoose from "mongoose";
-import AccountModel, { accountType } from "../modules/account/AccountModel";
+import AccountModel, {
+  AccountActionType,
+} from "../modules/account/AccountModel";
 import { connectDatabase } from "./database";
 
 const createSeed = async () => {
   await connectDatabase();
   await new AccountModel({
     accountName: "Externa-Service-Deposit",
-    accountType: accountType.deposit,
+    accountActionType: AccountActionType.deposit,
   }).save();
 
   await mongoose.connection.close();

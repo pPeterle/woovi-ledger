@@ -1,42 +1,42 @@
 import { errorField, successField } from "@entria/graphql-mongo-helpers";
-import { GraphQLInt, GraphQLNonNull, GraphQLString } from "graphql";
+import { GraphQLNonNull, GraphQLString } from "graphql";
 import { mutationWithClientMutationId } from "graphql-relay";
 import { startSession } from "mongoose";
 import { z } from "zod/v4";
 import * as AccountLoader from "../../account/AccountLoader.ts";
-import AccountModel, { AccountActionType } from "../../account/AccountModel.ts";
+import AccountModel from "../../account/AccountModel.ts";
 import AccountType from "../../account/AccountType.ts";
 import LedgerModel, { LedgetEntryType } from "../../ledger/LedgerModel.ts";
 import TransactionModel, {
   TransactionStatus,
   TransactionType,
 } from "../../transaction/TransactionModel.ts";
-import * as DepositLoader from "../DepositLoader.ts";
-import DepositModel, { DepositSource } from "../DepositModel.ts";
-import DepositType from "../DepositType.ts";
+import * as TransferLoader from "../../transfer/TransferLoader.ts";
+import TransferModel from "../TransferModel.ts";
+import TransferType from "../TransferType.ts";
 
 const schema = z.object({
-  source: z.enum(DepositSource),
   amount: z.int().min(100),
   fromAccountId: z.string(),
+  toAccountId: z.string(),
   idempotencyKey: z.string(),
 });
 
 export type CreateDepositInput = z.infer<typeof schema>;
 
-const CreateDepositMutation = mutationWithClientMutationId({
+const CreateTransferMutation = mutationWithClientMutationId({
   name: "CreateDeposit",
   inputFields: {
     source: {
       description: "PIX or BANK",
       type: new GraphQLNonNull(GraphQLString),
     },
-    amount: {
-      description: "Amount in cents",
-      type: new GraphQLNonNull(GraphQLInt),
-    },
     fromAccountId: {
-      description: "Account ID",
+      description: "From account ID",
+      type: new GraphQLNonNull(GraphQLString),
+    },
+    toAccountId: {
+      description: "Destiny account ID",
       type: new GraphQLNonNull(GraphQLString),
     },
     idempotencyKey: {
@@ -44,7 +44,7 @@ const CreateDepositMutation = mutationWithClientMutationId({
       type: new GraphQLNonNull(GraphQLString),
     },
   },
-  mutateAndGetPayload: async (args: CreateDepositInput) => {
+  mutateAndGetPayload: async (args: CreateDepositInput, ctx, info) => {
     schema.parse(args);
 
     const existTransactionWithIdempotencyKey = await TransactionModel.findOne({
@@ -55,16 +55,16 @@ const CreateDepositMutation = mutationWithClientMutationId({
       return {
         transactionId: existTransactionWithIdempotencyKey._id,
         accountId: existTransactionWithIdempotencyKey.fromAccount._id,
-        success: "Deposit already created.",
+        success: "Transfer already created.",
       };
     }
 
     const existsAssetAccount = AccountModel.exists({
-      id: args.fromAccountId,
+      id: args.toAccountId,
     });
 
     const existsIncomeAccount = AccountModel.exists({
-      accountType: AccountActionType.deposit,
+      id: args.fromAccountId,
     });
 
     const [assetAccount, incomeAccount] = await Promise.all([
@@ -80,9 +80,8 @@ const CreateDepositMutation = mutationWithClientMutationId({
     session.startTransaction();
 
     try {
-      const deposit = new DepositModel({
+      const deposit = new TransferModel({
         amount: args.amount,
-        source: args.source,
         transactionType: TransactionType.deposit,
         fromAccount: args.fromAccountId,
         toAccount: incomeAccount?._id,
@@ -119,7 +118,6 @@ const CreateDepositMutation = mutationWithClientMutationId({
 
       const incomeLedger = new LedgerModel({
         amount: args.amount,
-        source: args.source,
         account: incomeAccount._id,
         transaction: deposit,
         ledgerEntryType: LedgetEntryType.debit,
@@ -128,7 +126,6 @@ const CreateDepositMutation = mutationWithClientMutationId({
 
       const assetLedger = new LedgerModel({
         amount: args.amount,
-        source: args.source,
         account: args.fromAccountId,
         transaction: deposit,
         ledgerEntryType: LedgetEntryType.credit,
@@ -145,7 +142,7 @@ const CreateDepositMutation = mutationWithClientMutationId({
       return {
         transactionId: deposit._id,
         accountId: args.fromAccountId,
-        success: "Deposit created successfully",
+        success: "Transfer created successfully",
       };
     } catch (error) {
       await session.abortTransaction();
@@ -157,9 +154,9 @@ const CreateDepositMutation = mutationWithClientMutationId({
   },
   outputFields: {
     transaction: {
-      type: DepositType,
+      type: TransferType,
       resolve: async ({ transactionId }, _, context) => {
-        return await DepositLoader.load(context, transactionId);
+        return await TransferLoader.load(context, transactionId);
       },
     },
     account: {
@@ -173,4 +170,4 @@ const CreateDepositMutation = mutationWithClientMutationId({
   },
 });
 
-export default CreateDepositMutation;
+export default CreateTransferMutation;

@@ -46,6 +46,10 @@ const TransactionType = new GraphQLObjectType<ITransaction, GraphQLContext>({
       type: GraphQLString,
       resolve: (transaction) => transaction.transactionType,
     },
+    idempotencyKey: {
+      type: GraphQLString,
+      resolve: (transaction) => transaction.idempotencyKey,
+    },
     ...objectIdResolver,
     ...timestampResolver,
   }),

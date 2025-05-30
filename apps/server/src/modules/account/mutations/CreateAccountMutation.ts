@@ -1,12 +1,15 @@
 import { GraphQLNonNull, GraphQLString } from "graphql";
 import { mutationWithClientMutationId } from "graphql-relay";
+import { z } from "zod/v4";
 import * as AccountLoader from "../AccountLoader.ts";
 import AccountModel from "../AccountModel.ts";
 import AccountType from "../AccountType.ts";
 
-export type CreateAccountInput = {
-  name: string;
-};
+const schema = z.object({
+  accountName: z.string().min(5),
+});
+
+export type CreateAccountInput = z.infer<typeof schema>;
 
 const mutation = mutationWithClientMutationId({
   name: "AddAccount",
@@ -17,10 +20,10 @@ const mutation = mutationWithClientMutationId({
     },
   },
   mutateAndGetPayload: async (args: CreateAccountInput) => {
-    // TODO: schema validation
+    schema.parse(args);
 
     const account = await AccountModel.create({
-      accountName: args.name,
+      accountName: args.accountName,
       balance: 0,
     });
 

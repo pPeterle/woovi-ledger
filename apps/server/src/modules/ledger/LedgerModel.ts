@@ -45,12 +45,6 @@ const Schema = new mongoose.Schema<ILedger>(
       enum: ["CREDIT", "DEBIT"],
       required: true,
     },
-    idempotencyKey: {
-      type: String,
-      required: true,
-      unique: true,
-      index: true,
-    },
   },
   {
     collection: "Ledger",
