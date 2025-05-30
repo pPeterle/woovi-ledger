@@ -8,7 +8,7 @@
 
 ### Prevent duplicate transactions due to retries
 
-- Store the idempotency key with the transaction in Ledger (easy to audit requests).
+- Store the idempotency key with the transaction (easy to audit requests).
 - If a key already exists, do not reprocess and return the original result.
 
 ### Concurrent Transactions
@@ -43,7 +43,6 @@
 - It can avoid update the same accountid at the same time.
 - Update the transaction status and create a document in Ledger collection
 - In error retry with exponencial backoff
-
 
 ## Collections
 

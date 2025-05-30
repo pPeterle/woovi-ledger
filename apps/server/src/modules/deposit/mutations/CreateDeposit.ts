@@ -7,7 +7,7 @@ import * as AccountLoader from "../../account/AccountLoader.ts";
 import AccountModel, { AccountActionType } from "../../account/AccountModel.ts";
 import AccountType from "../../account/AccountType.ts";
 import LedgerModel, { LedgetEntryType } from "../../ledger/LedgerModel.ts";
-import {
+import TransactionModel, {
   TransactionStatus,
   TransactionType,
 } from "../../transaction/TransactionModel.ts";
@@ -19,6 +19,7 @@ const schema = z.object({
   source: z.enum(DepositSource),
   amount: z.int().min(100),
   fromAccountId: z.string(),
+  idempotencyKey: z.string(),
 });
 
 export type CreateDepositInput = z.infer<typeof schema>;
@@ -38,9 +39,25 @@ const CreateDepositMutation = mutationWithClientMutationId({
       description: "Account ID",
       type: new GraphQLNonNull(GraphQLString),
     },
+    idempotencyKey: {
+      description: "Unique key for this transaction",
+      type: new GraphQLNonNull(GraphQLString),
+    },
   },
   mutateAndGetPayload: async (args: CreateDepositInput) => {
     schema.parse(args);
+
+    const existTransactionWithIdempotencyKey = await TransactionModel.findOne({
+      idempotencyKey: args.idempotencyKey,
+    });
+
+    if (existTransactionWithIdempotencyKey) {
+      return {
+        transactionId: existTransactionWithIdempotencyKey._id,
+        accountId: existTransactionWithIdempotencyKey.fromAccount._id,
+        success: "Deposit already created.",
+      };
+    }
 
     const existsAssetAccount = AccountModel.exists({
       id: args.fromAccountId,
@@ -70,6 +87,7 @@ const CreateDepositMutation = mutationWithClientMutationId({
         fromAccount: args.fromAccountId,
         toAccount: incomeAccount?._id,
         status: TransactionStatus.success,
+        idempotencyKey: args.idempotencyKey,
       });
       await deposit.save({
         session,

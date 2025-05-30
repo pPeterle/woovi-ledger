@@ -28,6 +28,12 @@ const Schema = new mongoose.Schema(
       description: "Destiny account that will receive the amount sent",
       required: true,
     },
+    idempotencyKey: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+    },
   },
   {
     collection: "Transaction",
@@ -55,6 +61,7 @@ export interface ITransaction extends Document {
   toAccount: Types.ObjectId;
   status: ValueOf<typeof TransactionStatus>;
   transactionType: ValueOf<typeof TransactionType>;
+  idempotencyKey: string;
   createdAt: Date;
   updatedAt: Date | null;
 }

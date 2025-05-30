@@ -7,7 +7,7 @@ import * as AccountLoader from "../../account/AccountLoader.ts";
 import AccountModel from "../../account/AccountModel.ts";
 import AccountType from "../../account/AccountType.ts";
 import LedgerModel, { LedgetEntryType } from "../../ledger/LedgerModel.ts";
-import {
+import TransactionModel, {
   TransactionStatus,
   TransactionType,
 } from "../../transaction/TransactionModel.ts";
@@ -19,6 +19,7 @@ const schema = z.object({
   amount: z.int().min(100),
   fromAccountId: z.string(),
   toAccountId: z.string(),
+  idempotencyKey: z.string(),
 });
 
 export type CreateDepositInput = z.infer<typeof schema>;
@@ -38,9 +39,25 @@ const CreateTransferMutation = mutationWithClientMutationId({
       description: "Destiny account ID",
       type: new GraphQLNonNull(GraphQLString),
     },
+    idempotencyKey: {
+      description: "Unique key for this transaction",
+      type: new GraphQLNonNull(GraphQLString),
+    },
   },
-  mutateAndGetPayload: async (args: CreateDepositInput) => {
+  mutateAndGetPayload: async (args: CreateDepositInput, ctx, info) => {
     schema.parse(args);
+
+    const existTransactionWithIdempotencyKey = await TransactionModel.findOne({
+      idempotencyKey: args.idempotencyKey,
+    });
+
+    if (existTransactionWithIdempotencyKey) {
+      return {
+        transactionId: existTransactionWithIdempotencyKey._id,
+        accountId: existTransactionWithIdempotencyKey.fromAccount._id,
+        success: "Transfer already created.",
+      };
+    }
 
     const existsAssetAccount = AccountModel.exists({
       id: args.toAccountId,
@@ -69,6 +86,7 @@ const CreateTransferMutation = mutationWithClientMutationId({
         fromAccount: args.fromAccountId,
         toAccount: incomeAccount?._id,
         status: TransactionStatus.success,
+        idempotencyKey: args.idempotencyKey,
       });
       await deposit.save({
         session,
@@ -124,7 +142,7 @@ const CreateTransferMutation = mutationWithClientMutationId({
       return {
         transactionId: deposit._id,
         accountId: args.fromAccountId,
-        success: "Deposit created successfully",
+        success: "Transfer created successfully",
       };
     } catch (error) {
       await session.abortTransaction();
